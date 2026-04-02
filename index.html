@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UFS 测试程序</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1>UFS 测试程序</h1>
+                <span class="version">v1.0.0</span>
+            </div>
+            <div class="header-right">
+                <div class="device-status" id="deviceStatus">
+                    <span class="status-indicator offline"></span>
+                    <span class="status-text">未连接</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <h2>设备型号</h2>
+                <div class="model-selector">
+                    <select id="modelSelect" class="model-select">
+                        <option value="">-- 请选择UFS型号 --</option>
+                        <option value="random">随机型号</option>
+                        <option value="samsung-128">Samsung KLUDG4U1EA (128GB)</option>
+                        <option value="samsung-256">Samsung KLUDG8U1EA (256GB)</option>
+                        <option value="skhynix-128">SK Hynix H9HQ15AECM (128GB)</option>
+                        <option value="skhynix-256">SK Hynix H9HQ53AECM (256GB)</option>
+                        <option value="micron-128">Micron MT128GAXAT (128GB)</option>
+                        <option value="micron-256">Micron MT256GAXAT (256GB)</option>
+                        <option value="toshiba-128">Toshiba THGJFAT1T84 (128GB)</option>
+                        <option value="wd-128">Western Digital SDINFDK4 (128GB)</option>
+                    </select>
+                    <div class="model-info" id="modelInfo" style="display: none;">
+                        <div class="info-row">
+                            <span class="info-label">制造商:</span>
+                            <span class="info-value" id="infoManufacturer">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">容量:</span>
+                            <span class="info-value" id="infoCapacity">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">UFS版本:</span>
+                            <span class="info-value" id="infoVersion">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <h2>测试项目</h2>
+                <div class="test-categories">
+                    <div class="category">
+                        <label class="checkbox-item">
+                            <input type="checkbox" checked data-category="basic">
+                            <span class="checkmark"></span>
+                            <span class="label">基础信息</span>
+                        </label>
+                    </div>
+                    <div class="category">
+                        <label class="checkbox-item">
+                            <input type="checkbox" checked data-category="performance">
+                            <span class="checkmark"></span>
+                            <span class="label">性能测试</span>
+                        </label>
+                    </div>
+                    <div class="category">
+                        <label class="checkbox-item">
+                            <input type="checkbox" checked data-category="features">
+                            <span class="checkmark"></span>
+                            <span class="label">高级Feature</span>
+                        </label>
+                    </div>
+                    <div class="category">
+                        <label class="checkbox-item">
+                            <input type="checkbox" data-category="stress">
+                            <span class="checkmark"></span>
+                            <span class="label">压力测试</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="control-buttons">
+                    <button id="btnStart" class="btn btn-primary">开始测试</button>
+                    <button id="btnStop" class="btn btn-danger" disabled>停止测试</button>
+                    <button id="btnClear" class="btn btn-secondary">清除结果</button>
+                </div>
+            </aside>
+
+            <!-- Content Area -->
+            <main class="content">
+                <!-- Progress Section -->
+                <div class="progress-section" id="progressSection" style="display: none;">
+                    <div class="progress-header">
+                        <span class="progress-title">测试进度</span>
+                        <span class="progress-percent" id="progressPercent">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="current-test" id="currentTest">准备中...</div>
+                </div>
+
+                <!-- Overview Cards -->
+                <div class="overview-cards" id="overviewCards" style="display: none;">
+                    <div class="card">
+                        <div class="card-icon success">&#10003;</div>
+                        <div class="card-info">
+                            <span class="card-value" id="passCount">0</span>
+                            <span class="card-label">通过</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon fail">&#10007;</div>
+                        <div class="card-info">
+                            <span class="card-value" id="failCount">0</span>
+                            <span class="card-label">失败</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon warning">!</div>
+                        <div class="card-info">
+                            <span class="card-value" id="skipCount">0</span>
+                            <span class="card-label">跳过</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon info">&#128336;</div>
+                        <div class="card-info">
+                            <span class="card-value" id="testTime">0s</span>
+                            <span class="card-label">耗时</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Device Info Panel -->
+                <div class="panel" id="deviceInfoPanel" style="display: none;">
+                    <h3>设备信息</h3>
+                    <div class="info-grid" id="deviceInfoGrid"></div>
+                </div>
+
+                <!-- Performance Charts -->
+                <div class="panel" id="performancePanel" style="display: none;">
+                    <h3>性能测试结果</h3>
+                    <div class="charts-container">
+                        <div class="chart-wrapper">
+                            <canvas id="speedChart"></canvas>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="iopsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Test Results Table -->
+                <div class="panel" id="resultsPanel">
+                    <h3>测试结果</h3>
+                    <div class="table-container">
+                        <table class="results-table" id="resultsTable">
+                            <thead>
+                                <tr>
+                                    <th>测试项目</th>
+                                    <th>类别</th>
+                                    <th>状态</th>
+                                    <th>结果</th>
+                                    <th>参考值</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsBody">
+                                <tr class="empty-row">
+                                    <td colspan="6">暂无测试结果，请选择测试项目并点击"开始测试"</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Log Panel -->
+                <div class="panel" id="logPanel">
+                    <h3>测试日志</h3>
+                    <div class="log-container" id="logContainer">
+                        <div class="log-entry info">
+                            <span class="log-time">--:--:--</span>
+                            <span class="log-message">等待测试开始...</span>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="js/ufs-tester.js"></script>
+    <script src="js/ui-controller.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
